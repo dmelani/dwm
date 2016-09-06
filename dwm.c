@@ -212,6 +212,7 @@ static void tagmon(const Arg *arg);
 static void tile(Monitor *);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
+static void togglekbdlang(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
@@ -268,6 +269,7 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root;
+static int kbdlangidx;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -1709,6 +1711,20 @@ togglefloating(const Arg *arg)
 		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
 		       selmon->sel->w, selmon->sel->h, 0);
 	arrange(selmon);
+}
+
+void
+togglekbdlang(const Arg *arg)
+{
+	kbdlangidx = (kbdlangidx + 1) % (sizeof(kbdmaps)/sizeof(kbdmaps[0]));
+	if (fork() == 0) {
+		if (dpy)
+			close(ConnectionNumber(dpy));
+		execlp("/usr/X11R6/bin/setxkbmap", "setxkbmap", kbdmaps[kbdlangidx], NULL);
+		exit(EXIT_SUCCESS);
+	}
+
+
 }
 
 void
